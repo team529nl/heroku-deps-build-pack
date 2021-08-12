@@ -24,7 +24,7 @@ export_env $ENV_DIR "." "JAVA_OPTS"
 install_jdk ${BUILD_DIR}
 
 # Run clojure install script
-CLOJURE_CLI_VERSION="${CLOJURE_CLI_VERSION:-1.10.1.561}"
+CLOJURE_CLI_VERSION="${CLOJURE_CLI_VERSION:-1.10.3.933}"
 echo "-----> Installing Clojure $CLOJURE_CLI_VERSION CLI tools"
 CLOJURE_INSTALL_NAME="linux-install-${CLOJURE_CLI_VERSION}.sh"
 CLOJURE_INSTALL_URL="https://download.clojure.org/install/$CLOJURE_INSTALL_NAME"
@@ -40,25 +40,6 @@ cache_copy .cpcache $CACHE_DIR $BUILD_DIR
 cache_copy .m2 $CACHE_DIR $HOME
 
 echo "-----> Building with Tools Deps"
-
-# Extract environment
-if [ -d "${ENV_DIR}" ]; then
-  config_vars="ALIASES"
-
-  if [ -r "${ENV_DIR}/BUILD_CONFIG_ALLOWLIST" ]; then
-    config_vars=$(cat "${ENV_DIR}/BUILD_CONFIG_ALLOWLIST")
-
-  # Backwards compatibility for legacy configuration
-  elif [ -r "${ENV_DIR}/BUILD_CONFIG_WHITELIST" ]; then
-    config_vars=$(cat "${ENV_DIR}/BUILD_CONFIG_WHITELIST")
-  fi
-
-  for config_var in $config_vars; do
-      if [ -r "${ENV_DIR}/${config_var}" ]; then
-          export "${config_var}=$(cat "${ENV_DIR}/${config_var}")"
-      fi
-  done
-fi
 
 # Run clojure with BUILD_ALIASES aliases, if set.
 aliases_env=${BUILD_ALIASES}

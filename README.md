@@ -63,3 +63,12 @@ heroku config:set BUILD_COMMAND="clojure -T:build all"
 Heroku uses JDK 8 by default.
 
 Here is [a link to the very specific the Heroku Java support doc](https://devcenter.heroku.com/articles/java-support#supported-java-versions) for how this can be changed
+
+### Clojure CLI Version [Optional]
+
+This buildpack currently defaults to Clojure CLI version `1.10.3.933`.
+You can override this by setting the `CLOJURE_CLI_VERSION` [config var](https://devcenter.heroku.com/articles/config-vars#managing-config-vars), just as with the official Heroku Clojure Buildpack.
+
+```
+heroku config:set CLOJURE_CLI_VERSION="1.10.1.561"
+```
