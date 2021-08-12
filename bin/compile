@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
 
-# fail fast
+# Fail fast
 set -e
 
 BPLOG_PREFIX="clojure-tools-deps"
 
-# parse args
+# Parse args
 export BUILD_DIR=$1
 export CACHE_DIR=$2
 export ENV_DIR=$3
@@ -23,7 +23,7 @@ export_env $ENV_DIR "." "JAVA_OPTS"
 # Install JDK from jvm-common
 install_jdk ${BUILD_DIR}
 
-# Run clojure install script 
+# Run clojure install script
 CLOJURE_CLI_VERSION="${CLOJURE_CLI_VERSION:-1.10.1.561}"
 echo "-----> Installing Clojure $CLOJURE_CLI_VERSION CLI tools"
 CLOJURE_INSTALL_NAME="linux-install-${CLOJURE_CLI_VERSION}.sh"
@@ -35,13 +35,13 @@ mkdir -p $BUILD_DIR/.heroku/clj
 chmod +x $BUILD_DIR/.heroku/clj/bin/*
 export PATH=$BUILD_DIR/.heroku/clj/bin:$PATH
 
-# unpack existing cache
+# Unpack existing cache
 cache_copy .cpcache $CACHE_DIR $BUILD_DIR
 cache_copy .m2 $CACHE_DIR $HOME
 
 echo "-----> Building with Tools Deps"
 
-# extract environment
+# Extract environment
 if [ -d "${ENV_DIR}" ]; then
   config_vars="ALIASES"
 
@@ -60,6 +60,7 @@ if [ -d "${ENV_DIR}" ]; then
   done
 fi
 
+# Run clojure with BUILD_ALIASES aliases, if set.
 aliases_env=${BUILD_ALIASES}
 
 if [[ -n $aliases_env ]]
@@ -68,6 +69,7 @@ then
     (cd $BUILD_DIR && clojure $aliases)
 fi
 
+# Run clojure with TEST_ALIASES aliases, if set.
 aliases_env=${TEST_ALIASES}
 
 if [[ -n $aliases_env ]]
@@ -76,19 +78,36 @@ then
     (cd $BUILD_DIR && clojure $aliases)
 fi
 
+# Run custom build command, if set through BUILD_COMMAND or bin/build file.
+if [ -z "$BUILD_COMMAND" ]; then
+    if [ -x $BUILD_DIR/bin/build ]; then
+        echo "       Found bin/build; setting it as BUILD_COMMAND."
+        BUILD_COMMAND=bin/build
+    fi
+fi
 
+if [ -n "$BUILD_COMMAND" ]; then
+    echo "       Running: $BUILD_COMMAND"
 
-# populate profile.d
+    cd $BUILD_DIR
+    eval "$BUILD_COMMAND" 2>&1 | sed -u 's/^/       /'
+    if [ "${PIPESTATUS[*]}" != "0 0" ]; then
+        echo " !     Failed to build."
+        exit 1
+    fi
+fi
+
+# Populate profile.d
 PROFILE_PATH="$BUILD_DIR/.profile.d/clojure.sh"
 mkdir -p $(dirname $PROFILE_PATH)
 echo 'export PATH="$HOME/.heroku/clj/bin:$HOME/.jdk/bin:$PATH"' >> $PROFILE_PATH
 
-# rewrite Clojure CLI path
+# Rewrite Clojure CLI path
 mv $BUILD_DIR/.heroku/clj/bin/clojure $BUILD_DIR/.heroku/clj/bin/clojure.old
 cat $BUILD_DIR/.heroku/clj/bin/clojure.old | sed -e "s/\/tmp\/$(basename $BUILD_DIR)/\/app/g" > $BUILD_DIR/.heroku/clj/bin/clojure
 chmod +x $BUILD_DIR/.heroku/clj/bin/clojure
 
-# repack cache with new assets
+# Repack cache with new assets
 cache_copy .cpcache $BUILD_DIR $CACHE_DIR
 cache_copy .m2 $HOME $BUILD_DIR
 cache_copy .m2 $BUILD_DIR $CACHE_DIR

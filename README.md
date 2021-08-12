@@ -41,7 +41,7 @@ You may specify one or more aliases to run during the `compile` phase of the dep
 
 :information_source: This is how you can ensure that your server dependencies are on your CLASSPATH and don't need to be downloaded again when you try to start the server.
 
-One simple test that triggers the server dependency is all that is needed here. No biggieif you have more tests.
+One simple test that triggers the server dependency is all that is needed here. No biggie if you have more tests.
 
 ```
 heroku config:set TEST_ALIASES=":alias1:alias2"
@@ -49,8 +49,17 @@ heroku config:set TEST_ALIASES=":alias1:alias2"
 
 :information_source: Main win: any artefacts built or dependencies downloaded during the `compile` phase will be available at deployment.
 
+### Custom Build Command [Optional]
+
+Just as with the official Heroku Clojure Buildpack, you can set a custom build command by either setting the `BUILD_COMMAND` [config var](https://devcenter.heroku.com/articles/config-vars#managing-config-vars) or adding a `bin/build` executable file in your repository.
+The config var takes precedence.
+
+```
+heroku config:set BUILD_COMMAND="clojure -T:build all"
+```
+
 ### JVM runtime [Optional]
 
 Heroku uses JDK 8 by default.
- 
+
 Here is [a link to the very specific the Heroku Java support doc](https://devcenter.heroku.com/articles/java-support#supported-java-versions) for how this can be changed
